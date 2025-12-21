@@ -1,0 +1,9 @@
+
+__pycache__/
+*.pyc
+.env
+sentinel.db
+Daily_Briefings/
+venv/
+.DS_Store
+
