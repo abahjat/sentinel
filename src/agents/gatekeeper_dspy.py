@@ -80,7 +80,7 @@ class GatekeeperDSPyAgent:
 def gatekeeper_node(state: AgentState):
     # Initialize with your preferred provider
     # Ensure env vars are set!
-    gatekeeper = GatekeeperDSPyAgent(provider="anthropic")
+    gatekeeper = GatekeeperDSPyAgent(provider="google")
     
     raw = state.get('raw_artifacts', [])
     screened = gatekeeper.filter_batch(raw)
