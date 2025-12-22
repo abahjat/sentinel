@@ -2,9 +2,10 @@ from langgraph.graph import StateGraph, END
 from src.state import AgentState
 from src.agents.monitor import monitor_node
 from src.agents.industry_monitor import industry_monitor_node 
-from src.agents.gatekeeper import gatekeeper_node
 from src.agents.analyst import analyst_node
 from src.agents.journalist import journalist_node
+#from src.agents.gatekeeper import gatekeeper_node
+from src.agents.gatekeeper_dspy import gatekeeper_node # Use this for DSPy
 
 workflow = StateGraph(AgentState)
 

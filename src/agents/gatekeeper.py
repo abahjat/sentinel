@@ -9,9 +9,6 @@ from src.state import Artifact, AgentState
 # Toggle this between "claude" and "gemini"
 PROVIDER = "gemini" 
 
-# ⚠️ SECURITY WARNING: Hardcoding keys is risky. Do not commit this file to public GitHub.
-ANTHROPIC_KEY = "sk-ant-..." 
-GOOGLE_KEY = "AIzaSyCcaRXBm-" 
 # ---------------------
 
 class GatekeeperAgent:
@@ -22,13 +19,13 @@ class GatekeeperAgent:
             self.llm = ChatAnthropic(
                 model="claude-4-5-sonnet-latest",
                 temperature=0,
-                api_key=ANTHROPIC_KEY
+                api_key=os.environ.get("ANTHROPIC_API_KEY")
             )
         elif self.provider == "gemini":
             self.llm = ChatGoogleGenerativeAI(
                 model="gemini-2.5-pro", # 'pro' is best for complex reasoning/coding tasks
                 temperature=0,
-                google_api_key=GOOGLE_KEY
+                google_api_key=os.environ.get("GOOGLE_API_KEY")
             )
         else:
             raise ValueError(f"Unknown provider: {self.provider}")
