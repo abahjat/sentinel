@@ -26,13 +26,14 @@ class GatekeeperDSPyAgent:
     def __init__(self, provider="anthropic"):
         # Configure the LM
         if provider == "anthropic":
-            lm = dspy.Anthropic(
-                model="claude-3-5-sonnet-20241022",
+            lm = dspy.LM(
+                model="anthropic/claude-3-5-sonnet-20241022", # Added 'anthropic/' prefix
                 api_key=os.environ.get("ANTHROPIC_API_KEY")
             )
         elif provider == "google":
-            lm = dspy.Google(
-                model="gemini-1.5-pro",
+            # Use the unified dspy.LM client
+            lm = dspy.LM(
+                model="gemini/gemini-2.5-pro", 
                 api_key=os.environ.get("GOOGLE_API_KEY")
             )
         else:
