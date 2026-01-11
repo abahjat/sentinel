@@ -1,8 +1,9 @@
 import arxiv
+import re
 from typing import List
 from datetime import datetime, timedelta, timezone
 from src.state import Artifact
-from src.memory import get_processed_ids # <--- NEW IMPORT
+from src.memory import get_processed_ids, mark_as_processed
 
 class MonitorAgent:
     def __init__(self):
@@ -13,7 +14,7 @@ class MonitorAgent:
         # cs.CL = Computation & Language (LLMs, NLP)
         self.categories = ["cs.SE", "cs.AI", "cs.CR", "cs.CL"]
 
-    def fetch_latest(self, days_back: int = 5) -> List[Artifact]:
+    def fetch_latest(self, days_back: int = 3) -> List[Artifact]:
         """
         Fetches metadata for papers published in the last N days.
         """
@@ -40,7 +41,9 @@ class MonitorAgent:
             if result.published.replace(tzinfo=timezone.utc) < cutoff_date:
                 break
             
-            paper_id = result.entry_id.split('/')[-1]
+            # Extract paper ID and strip version number (e.g., 2401.12345v2 -> 2401.12345)
+            raw_id = result.entry_id.split('/')[-1]
+            paper_id = re.sub(r'v\d+$', '', raw_id)
 
             # 2. DEDUPLICATION CHECK
             if paper_id in existing_ids:
@@ -68,5 +71,10 @@ class MonitorAgent:
 def monitor_node(state):
     monitor = MonitorAgent()
     new_artifacts = monitor.fetch_latest(days_back=5)
+    
+    # Mark papers as processed IMMEDIATELY to prevent race conditions
+    if new_artifacts:
+        mark_as_processed([art['id'] for art in new_artifacts])
+    
     return {"raw_artifacts": new_artifacts}
     
