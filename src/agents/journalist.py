@@ -1,7 +1,6 @@
 import os
 from datetime import datetime
 from src.state import AgentState
-from src.memory import mark_as_processed # <--- NEW IMPORT
 
 class JournalistAgent:
     def __init__(self):
@@ -10,19 +9,28 @@ class JournalistAgent:
             os.makedirs(self.output_dir)
 
     def write_report(self, screened_artifacts, all_raw_artifacts) -> str:
-        # 1. Save to Memory (Critical Step)
-        # We mark ALL raw artifacts as processed so we don't fetch them again
-        all_ids = [art['id'] for art in all_raw_artifacts]
-        mark_as_processed(all_ids)
+        # Note: Papers are now marked as processed in monitor_node immediately after fetch
+        # This prevents race conditions when running multiple times
 
         if not screened_artifacts:
             return "No relevant papers found today."
 
+        # Deduplicate artifacts as a safety net (in case of any upstream issues)
+        seen_ids = set()
+        unique_artifacts = []
+        for art in screened_artifacts:
+            if art['id'] not in seen_ids:
+                seen_ids.add(art['id'])
+                unique_artifacts.append(art)
+        
+        if len(unique_artifacts) < len(screened_artifacts):
+            print(f"📰 Journalist: Removed {len(screened_artifacts) - len(unique_artifacts)} duplicate entries.")
+
         date_str = datetime.now().strftime("%Y-%m-%d")
         filename = f"{self.output_dir}/Briefing_{date_str}.md"
         
-        total_found = len(screened_artifacts)
-        code_avail = sum(1 for a in screened_artifacts if a.get('code_link'))
+        total_found = len(unique_artifacts)
+        code_avail = sum(1 for a in unique_artifacts if a.get('code_link'))
         
         md_content = f"""# 🛡️ Sentinel Briefing: {date_str}
 
@@ -33,7 +41,7 @@ class JournalistAgent:
 
 ## 🚨 Top Priority Radar
 """
-        sorted_artifacts = sorted(screened_artifacts, key=lambda x: x['score'], reverse=True)
+        sorted_artifacts = sorted(unique_artifacts, key=lambda x: x['score'], reverse=True)
 
         for art in sorted_artifacts:
             icon = "🟢" if art['score'] >= 9 else "🟡"
